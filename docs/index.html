@@ -1,0 +1,566 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d18">
+  <meta name="description" content="OnePlus Pad 2 NPU Server - Documentazione tecnica Snapdragon 8 Gen 3 Hexagon V75">
+  <title>OnePlus NPU Server | Documentation</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="assets/js/app.js" defer></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="#overview">
+    <span class="brand-icon">N</span>
+    <span>ONEPLUS <b>NPU SERVER</b></span>
+  </a>
+  <button class="menu-toggle" id="menuToggle" aria-label="Apri navigazione">☰</button>
+  <nav id="navigation">
+    <a href="#overview">Overview</a>
+    <a href="#architecture">Architettura</a>
+    <a href="#hardware">Hardware</a>
+    <a href="#model">Modello</a>
+    <a href="#runtime">Runtime</a>
+    <a href="#benchmark">Benchmark</a>
+    <a href="#api">API</a>
+    <a href="#glossary">Glossario</a>
+    <a href="#roadmap">Roadmap</a>
+  </nav>
+</header>
+
+<main>
+
+<section class="hero" id="overview">
+  <div class="eyebrow"><span class="pulse"></span> TECHNICAL PROJECT · SNAPDRAGON 8 GEN 3</div>
+  <h1>AI inference.<br><span>Powered by NPU.</span></h1>
+  <p class="hero-description">
+    Trasformare OnePlus Pad 2 in un server di inferenza AI
+    compatibile con le API OpenAI, sfruttando esclusivamente
+    Qualcomm Hexagon V75.
+  </p>
+  <div class="hero-tags">
+    <span>SM8650</span>
+    <span>HEXAGON V75</span>
+    <span>QAIRT</span>
+    <span>GENIE SDK</span>
+    <span>W4A16</span>
+  </div>
+  <div class="hero-actions">
+    <a class="button primary" href="#architecture">Esplora architettura ↗</a>
+    <a class="button secondary" href="#roadmap">Avanzamento progetto</a>
+  </div>
+  <div class="hero-note">NPU-ONLY ARCHITECTURE · ANDROID ARM64 · LAN SERVER</div>
+</section>
+
+<section class="stats">
+  <article class="stat-card">
+    <span>DECODE SPEED</span>
+    <strong>18.27</strong>
+    <small>tokens / second</small>
+  </article>
+  <article class="stat-card">
+    <span>PREFILL SPEED</span>
+    <strong>356.51</strong>
+    <small>tokens / second</small>
+  </article>
+  <article class="stat-card">
+    <span>TIME TO FIRST TOKEN</span>
+    <strong>75.75</strong>
+    <small>milliseconds</small>
+  </article>
+  <article class="stat-card">
+    <span>MODEL SIZE</span>
+    <strong>3.02 GB</strong>
+    <small>4 context binaries</small>
+  </article>
+</section>
+
+<section class="section" id="architecture">
+  <div class="section-heading">
+    <span class="eyebrow">01 / SYSTEM DESIGN</span>
+    <h2>Architettura end-to-end</h2>
+    <p>Dal client IDE fino alle unità di calcolo Hexagon.</p>
+  </div>
+
+  <div class="architecture">
+    <div class="arch-node client">
+      <small>01 · CLIENT LAN</small>
+      <h3>VS Code / Cursor / Continue</h3>
+      <p>HTTP · JSON · SSE</p>
+    </div>
+    <div class="connector">↓ HTTP :8080</div>
+    <div class="arch-node">
+      <small>02 · ANDROID USER SPACE</small>
+      <h3>npu-openai-server</h3>
+      <p>C++ · NDK · OpenAI Adapter · ChatML</p>
+    </div>
+    <div class="connector">↓ Genie C API</div>
+    <div class="arch-node highlight">
+      <small>03 · INFERENCE ENGINE</small>
+      <h3>libGenie.so</h3>
+      <p>Tokenizer · Sampler · KV-Cache</p>
+    </div>
+    <div class="connector">↓ QNN Runtime</div>
+    <div class="arch-node">
+      <small>04 · QUALCOMM RUNTIME</small>
+      <h3>QNN HTP</h3>
+      <p>Context Binaries · FastRPC · DMA-BUF</p>
+    </div>
+    <div class="connector">↓ FastRPC</div>
+    <div class="arch-node npu">
+      <small>05 · HARDWARE ACCELERATOR</small>
+      <h3>Hexagon V75 NPU</h3>
+      <p>HMX · HVX · VTCM</p>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <b>Vincolo architetturale:</b>
+    l'inferenza utilizza QnnHtp senza fallback CPU/GPU.
+  </div>
+</section>
+
+<section class="section" id="hardware">
+  <div class="section-heading">
+    <span class="eyebrow">02 / HARDWARE</span>
+    <h2>La piattaforma</h2>
+    <p>Il silicio che rende possibile l'inferenza locale.</p>
+  </div>
+
+  <div class="grid-2">
+    <article class="panel">
+      <span class="panel-label">TARGET DEVICE</span>
+      <h3>OnePlus Pad 2</h3>
+      <p>Tablet Android basato su Snapdragon 8 Gen 3.</p>
+      <div class="spec-list">
+        <div><span>SoC</span><b>SM8650</b></div>
+        <div><span>Architettura NPU</span><b>Hexagon V75</b></div>
+        <div><span>soc_model</span><b>57</b></div>
+        <div><span>RAM</span><b>16 GB LPDDR5X</b></div>
+        <div><span>Banda teorica</span><b>~68 GB/s</b></div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <span class="panel-label">HEXAGON COMPUTE</span>
+      <h3>Accelerazione hardware</h3>
+      <div class="component">
+        <b>HMX</b>
+        <p>Unità matriciale per MatMul e Attention.</p>
+      </div>
+      <div class="component">
+        <b>HVX</b>
+        <p>Unità vettoriale per RMSNorm, RoPE e SiLU.</p>
+      </div>
+      <div class="component">
+        <b>VTCM</b>
+        <p>Memoria SRAM interna per tiling ad alta velocità.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="section" id="model">
+  <div class="section-heading">
+    <span class="eyebrow">03 / MODEL ENGINEERING</span>
+    <h2>Il modello AI</h2>
+    <p>Quantizzazione e compilazione specializzata per Hexagon V75.</p>
+  </div>
+
+  <article class="panel model-panel">
+    <div>
+      <span class="panel-label">SELECTED MODEL</span>
+      <h3>Qwen3-4B-Instruct-2507</h3>
+      <p>Modello per codice, JSON e agenti AI.</p>
+      <div class="hero-tags">
+        <span>W4A16</span>
+        <span>INT4 WEIGHTS</span>
+        <span>FP16 ACTIVATIONS</span>
+      </div>
+    </div>
+    <div class="model-size">
+      <strong>3.02</strong>
+      <span>GB TOTALI</span>
+    </div>
+  </article>
+
+  <h3 class="subheading">I quattro Context Binaries</h3>
+
+  <div class="binary-list">
+    <div>
+      <span>PART 1 / 4</span>
+      <b>743 MB</b>
+      <small>Embedding + primi layer</small>
+    </div>
+    <div>
+      <span>PART 2 / 4</span>
+      <b>632 MB</b>
+      <small>Layer intermedi</small>
+    </div>
+    <div>
+      <span>PART 3 / 4</span>
+      <b>632 MB</b>
+      <small>Layer intermedi</small>
+    </div>
+    <div>
+      <span>PART 4 / 4</span>
+      <b>1011 MB</b>
+      <small>Ultimi layer + LM Head</small>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <b>Compilazione AOT:</b>
+    40 CompileJob e 4 LinkJob.
+    Dieci grafi statici per shard, tra Prefill ar128
+    e Decode ar1, con cinque bucket di context length.
+  </div>
+</section>
+
+<section class="section" id="runtime">
+  <div class="section-heading">
+    <span class="eyebrow">04 / ANDROID RUNTIME</span>
+    <h2>QAIRT + Genie SDK</h2>
+    <p>Il runtime nativo che collega il modello al processore neurale.</p>
+  </div>
+
+  <div class="grid-2">
+    <article class="panel">
+      <span class="panel-label">LOW LEVEL</span>
+      <h3>QNN HTP Runtime</h3>
+      <ul class="clean-list">
+        <li>libQnnHtp.so</li>
+        <li>libQnnSystem.so</li>
+        <li>libQnnHtpNetRunExtensions.so</li>
+        <li>libQnnHtpV75Stub.so</li>
+        <li>libQnnHtpV75Skel.so</li>
+      </ul>
+    </article>
+
+    <article class="panel">
+      <span class="panel-label">HIGH LEVEL</span>
+      <h3>Genie SDK</h3>
+      <ul class="clean-list">
+        <li>libGenie.so</li>
+        <li>Tokenizer BPE</li>
+        <li>Sampler</li>
+        <li>KV-Cache</li>
+        <li>Gestione dei quattro shard</li>
+      </ul>
+    </article>
+  </div>
+
+  <h3 class="subheading">Configurazione hardware</h3>
+
+  <div class="code-card">
+    <div class="code-header">
+      htp_backend_ext_config.json
+      <span>CONFIGURATION</span>
+    </div>
+    <pre><code>{
+  "devices": [{
+    "soc_model": 57,
+    "dsp_arch": "v75",
+    "cores": [{
+      "core_id": 0,
+      "perf_profile": "burst",
+      "rpc_control_latency": 100
+    }]
+  }]
+}</code></pre>
+  </div>
+
+  <div class="code-card">
+    <div class="code-header">
+      genie_config.json
+      <span>CONFIGURATION</span>
+    </div>
+    <pre><code>{
+  "dialog": {
+    "version": 1,
+    "type": "basic",
+    "context": {
+      "version": 1,
+      "size": 4096,
+      "n-vocab": 151936,
+      "bos-token": 151643,
+      "eos-token": 151645
+    },
+    "engine": {
+      "version": 1,
+      "n-threads": 3,
+      "backend": {
+        "version": 1,
+        "type": "QnnHtp",
+        "QnnHtp": {
+          "version": 1,
+          "use-mmap": true,
+          "spill-fill-bufsize": 0,
+          "mmap-budget": 0,
+          "poll": true,
+          "cpu-mask": "0xe0",
+          "kv-dim": 128,
+          "allow-async-init": false,
+          "pos-id-dim": 64,
+          "rope-theta": 5000000
+        },
+        "extensions": "htp_backend_ext_config.json"
+      },
+      "model": {
+        "version": 1,
+        "type": "binary",
+        "binary": {
+          "version": 1,
+          "ctx-bins": [
+            "qwen3_4b_instruct_2507_part1_of_4.bin",
+            "qwen3_4b_instruct_2507_part2_of_4.bin",
+            "qwen3_4b_instruct_2507_part3_of_4.bin",
+            "qwen3_4b_instruct_2507_part4_of_4.bin"
+          ]
+        }
+      }
+    }
+  }
+}</code></pre>
+  </div>
+</section>
+
+<section class="section" id="benchmark">
+  <div class="section-heading">
+    <span class="eyebrow">05 / PERFORMANCE</span>
+    <h2>Benchmark reali</h2>
+    <p>Risultati riportati dal profile.json sul OnePlus Pad 2.</p>
+  </div>
+
+  <div class="benchmark-grid">
+    <article class="benchmark-card">
+      <small>PROMPT PROCESSING</small>
+      <strong>356.51 <i>tok/s</i></strong>
+      <div class="meter"><span style="width:89%"></span></div>
+      <p>Prefill · 27 token · ar128</p>
+    </article>
+
+    <article class="benchmark-card">
+      <small>TOKEN GENERATION</small>
+      <strong>18.27 <i>tok/s</i></strong>
+      <div class="meter"><span style="width:60%"></span></div>
+      <p>Decode · 90 token · ar1</p>
+    </article>
+
+    <article class="benchmark-card">
+      <small>TIME TO FIRST TOKEN</small>
+      <strong>75.75 <i>ms</i></strong>
+      <div class="meter"><span style="width:75%"></span></div>
+      <p>Latenza iniziale misurata</p>
+    </article>
+
+    <article class="benchmark-card">
+      <small>INITIALIZATION</small>
+      <strong>5.20 <i>s</i></strong>
+      <div class="meter"><span style="width:52%"></span></div>
+      <p>GenieDialog_create</p>
+    </article>
+  </div>
+
+  <div class="info-box">
+    Le barre sono rappresentazioni grafiche illustrative,
+    non confronti tra metriche con unità differenti.
+  </div>
+
+  <div class="spec-list panel">
+    <div><span>GenieDialog_free</span><b>0.31 s</b></div>
+    <div><span>Model loading</span><b>5.20 s</b></div>
+    <div><span>Decode tokens</span><b>90</b></div>
+    <div><span>Context window</span><b>4096</b></div>
+  </div>
+</section>
+
+<section class="section" id="api">
+  <div class="section-heading">
+    <span class="eyebrow">06 / OPENAI COMPATIBILITY</span>
+    <h2>Il server API</h2>
+    <p>Il Modulo 3 porterà l'inferenza NPU negli strumenti di sviluppo.</p>
+  </div>
+
+  <div class="endpoint">
+    <span class="method get">GET</span>
+    <code>/v1/models</code>
+    <p>Espone l'identificativo del modello per i client.</p>
+  </div>
+
+  <div class="endpoint">
+    <span class="method post">POST</span>
+    <code>/v1/chat/completions</code>
+    <p>Gestione conversazioni, completamenti e streaming SSE.</p>
+  </div>
+
+  <h3 class="subheading">Parametri compatibili</h3>
+
+  <div class="spec-list panel">
+    <div><span>temperature</span><b>Sampler</b></div>
+    <div><span>top_p</span><b>Sampler</b></div>
+    <div><span>max_tokens</span><b>Generation limit</b></div>
+    <div><span>stream</span><b>SSE / JSON</b></div>
+    <div><span>stop</span><b>Stop sequences</b></div>
+  </div>
+
+  <h3 class="subheading">Configurazione prevista del client</h3>
+
+  <div class="code-card">
+    <div class="code-header">OPENAI CLIENT <span>PLANNED CONFIG</span></div>
+    <pre><code>Base URL:
+http://&lt;IP_LOCALE_ONEPLUS_PAD_2&gt;:8080/v1
+
+Model:
+qwen3-4b-instruct-2507-npu
+
+API Key:
+npu-local</code></pre>
+  </div>
+
+  <div class="warning-box">
+    <b>Stato attuale:</b>
+    gli endpoint HTTP, lo streaming SSE e il demone C++
+    sono ancora da implementare.
+    Questa sezione descrive l'interfaccia progettata,
+    non un server già operativo.
+  </div>
+</section>
+
+<section class="section" id="glossary">
+  <div class="section-heading">
+    <span class="eyebrow">07 / KNOWLEDGE BASE</span>
+    <h2>Glossario tecnico</h2>
+    <p>Le tecnologie e gli acronimi principali del progetto.</p>
+  </div>
+
+  <input class="search-input" id="glossarySearch"
+    type="search" placeholder="Cerca un termine...">
+
+  <div class="glossary-grid" id="glossaryList">
+
+    <article class="term"><b>SoC</b><p>System on Chip: integra CPU, GPU e cDSP.</p></article>
+    <article class="term"><b>HTP</b><p>Hexagon Tensor Processor: acceleratore neurale Qualcomm.</p></article>
+    <article class="term"><b>cDSP</b><p>Compute Digital Signal Processor dedicato al calcolo parallelo.</p></article>
+    <article class="term"><b>HMX</b><p>Unità matriciale Hexagon per le operazioni tensoriali.</p></article>
+    <article class="term"><b>HVX</b><p>Unità vettoriale Hexagon.</p></article>
+    <article class="term"><b>VTCM</b><p>Memoria SRAM interna all'HTP.</p></article>
+    <article class="term"><b>UMA</b><p>Unified Memory Architecture: memoria fisica condivisa.</p></article>
+    <article class="term"><b>FastRPC</b><p>Comunicazione tra ARM e cDSP.</p></article>
+    <article class="term"><b>Stub / Skel</b><p>Proxy CPU e componente eseguito sul DSP.</p></article>
+    <article class="term"><b>QAIRT</b><p>Qualcomm AI Runtime SDK.</p></article>
+    <article class="term"><b>QNN</b><p>Qualcomm AI Engine Direct.</p></article>
+    <article class="term"><b>Genie</b><p>Motore di inferenza generativa basato su QNN.</p></article>
+    <article class="term"><b>AIMET</b><p>Toolkit Qualcomm per quantizzazione e calibrazione.</p></article>
+    <article class="term"><b>W4A16</b><p>Pesi INT4 e attivazioni FP16/INT16.</p></article>
+    <article class="term"><b>RoPE</b><p>Rotary Position Embedding.</p></article>
+    <article class="term"><b>KV-Cache</b><p>Memorizzazione di Key e Value dell'Attention.</p></article>
+    <article class="term"><b>TTFT</b><p>Time To First Token.</p></article>
+    <article class="term"><b>SSE</b><p>Server-Sent Events per lo streaming HTTP.</p></article>
+    <article class="term"><b>AOT</b><p>Ahead-Of-Time: compilazione anticipata.</p></article>
+    <article class="term"><b>DCVS</b><p>Dynamic Clock and Voltage Scaling.</p></article>
+    <article class="term"><b>DMA-BUF</b><p>Meccanismo Linux per la condivisione di buffer.</p></article>
+    <article class="term"><b>ChatML</b><p>Formato strutturato dei messaggi del modello.</p></article>
+
+  </div>
+</section>
+
+<section class="section" id="roadmap">
+  <div class="section-heading">
+    <span class="eyebrow">08 / PROJECT STATUS</span>
+    <h2>Roadmap del progetto</h2>
+    <p>Avanzamento documentato e prossimi obiettivi.</p>
+  </div>
+
+  <div class="progress-summary">
+    <div>
+      <strong>2 / 3</strong>
+      <span>Moduli completati</span>
+    </div>
+    <div class="progress-track">
+      <span style="width:66.67%"></span>
+    </div>
+    <small>Avanzamento per moduli principali.</small>
+  </div>
+
+  <div class="timeline">
+
+    <article class="timeline-item done">
+      <span class="timeline-marker">✓</span>
+      <div>
+        <small>MODULE 00</small>
+        <h3>Architettura e pianificazione</h3>
+        <p>Scelta dello stack QAIRT, Genie e NPU V75.</p>
+        <span class="status done-label">COMPLETATO</span>
+      </div>
+    </article>
+
+    <article class="timeline-item done">
+      <span class="timeline-marker">✓</span>
+      <div>
+        <small>MODULE 01</small>
+        <h3>Modello e compilazione AOT</h3>
+        <p>Qwen3 W4A16, 40 CompileJob, 4 LinkJob e Context Binaries.</p>
+        <span class="status done-label">COMPLETATO</span>
+      </div>
+    </article>
+
+    <article class="timeline-item done">
+      <span class="timeline-marker">✓</span>
+      <div>
+        <small>MODULE 02</small>
+        <h3>Runtime Android e benchmark</h3>
+        <p>QAIRT, Genie, configurazioni V75 e benchmark NPU.</p>
+        <span class="status done-label">COMPLETATO</span>
+      </div>
+    </article>
+
+    <article class="timeline-item pending">
+      <span class="timeline-marker">03</span>
+      <div>
+        <small>MODULE 03 · NEXT</small>
+        <h3>OpenAI API Server</h3>
+        <p>Demone C++ nativo, endpoint OpenAI e streaming SSE.</p>
+        <ul>
+          <li>Step 3.1 — Android NDK e cross-compilazione</li>
+          <li>Step 3.2 — API, ChatML, sampler e mutex</li>
+          <li>Step 3.3 — Avvio persistente e integrazione LAN</li>
+        </ul>
+        <span class="status pending-label">DA COMPLETARE</span>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section class="final-banner">
+  <span class="eyebrow">THE FINAL GOAL</span>
+  <h2>Local AI.<br><span>No cloud inference.</span></h2>
+  <p>
+    Un modello linguistico accessibile in rete locale,
+    attraverso un'interfaccia OpenAI-compatible e
+    accelerato esclusivamente dalla NPU Qualcomm.
+  </p>
+  <a class="button primary" href="#overview">Torna all'inizio ↑</a>
+</section>
+
+</main>
+
+<footer>
+  <div class="brand">
+    <span class="brand-icon">N</span>
+    ONEPLUS NPU SERVER
+  </div>
+  <p>Technical documentation · Snapdragon 8 Gen 3 · Hexagon V75</p>
+  <small>
+    Metriche e specifiche riportate dalla documentazione del progetto.
+    Il Modulo 3 è ancora pianificato.
+  </small>
+  <small class="copyright">STATIC DOCUMENTATION · GITHUB PAGES</small>
+</footer>
+
+</body>
+</html>
