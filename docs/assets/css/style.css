@@ -184,6 +184,7 @@ h1 span, .final-banner h2 span {
 .section-heading h2 { font-size: clamp(30px,5vw,43px); letter-spacing: -1.5px; margin: 8px 0; }
 .section-heading p, .panel p { color: var(--muted); }
 .section-heading p { margin: 0; font-size: 14px; }
+.section-heading > div {display: flex;align-items: center;justify-content: space-between;gap: 20px;width: 100%;}
 
 .architecture { max-width: 650px; margin: auto; text-align: center; }
 .arch-node {
